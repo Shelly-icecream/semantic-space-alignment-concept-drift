@@ -1,0 +1,36 @@
+
+.venv/
+venv/
+env/
+*.venv
+
+
+.idea/
+*.swp
+*.swo
+*~
+
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+*.egg
+*.whl
+
+
+*.log
+log.txt
+*.tmp
+*.temp
+
+
+*.npy
+*.kv
+
+
+.DS_Store       # Mac 系统隐藏文件
+Thumbs.db       # Windows 系统缩略图缓存
