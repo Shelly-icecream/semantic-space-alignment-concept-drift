@@ -28,9 +28,9 @@ log.txt
 *.temp
 
 
-*.npy
-*.kv
+
 
 
 .DS_Store       # Mac 系统隐藏文件
-Thumbs.db       # Windows 系统缩略图缓存
+Thumbs.db       # Windows 系统缩略图缓存*.kv 
+*.npy 
