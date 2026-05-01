@@ -143,7 +143,7 @@ for i in range(max_iter):
 
     last_avg_sim = avg_sim
 
-    # 剔除可能发生了概念漂移的词
+    # 根据当前 Q 在全部初始锚点中重新筛选可靠锚点，用于下一轮训练
     X = X0[keep_idx]
     Y = Y0[keep_idx]
 
