@@ -129,3 +129,32 @@ plt.grid(True, alpha=0.4)
 plt.tight_layout()
 plt.savefig(r"D:\高代大作业\anchor_size_test_residual_curve.png", dpi=300)
 plt.show()
+
+Q_np = Q.detach().cpu().numpy()
+QtQ_np = (Q.T @ Q).detach().cpu().numpy()
+
+plt.figure(figsize=(16, 7))
+
+# =========================
+# 左图：Q 矩阵热力图
+# =========================
+plt.subplot(1, 2, 1)
+im1 = plt.imshow(Q_np, cmap="coolwarm", aspect="auto", vmin=-0.2, vmax=0.2)
+plt.colorbar(im1, fraction=0.046, pad=0.04)
+plt.title("对齐矩阵 Q 的热力图")
+plt.xlabel("列索引")
+plt.ylabel("行索引")
+
+# =========================
+# 右图：Q^T Q 热力图
+# =========================
+plt.subplot(1, 2, 2)
+im2 = plt.imshow(QtQ_np, cmap="coolwarm", aspect="auto")
+plt.colorbar(im2, fraction=0.046, pad=0.04)
+plt.title("Q^TQ 的热力图")
+plt.xlabel("列索引")
+plt.ylabel("行索引")
+
+plt.tight_layout()
+plt.savefig(r"D:\高代大作业\Q_and_QtQ_heatmap.png", dpi=300)
+plt.show()
