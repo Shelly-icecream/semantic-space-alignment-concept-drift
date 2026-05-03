@@ -1,11 +1,26 @@
-from utils import *
+import sys
+from pathlib import Path
+
+_align = Path(__file__).resolve().parent
+_src = _align.parent
+sys.path.insert(0, str(_src))
+sys.path.insert(0, str(_align))
+
+from utils import *  # noqa: E402,F403
+
+import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
+import torch  # noqa: E402
+
+import paths  # noqa: E402
+
 
 def train_alignment_Q(X0, Y0, max_iter=5, epsilon=1e-4):
     X = X0.clone()
     Y = Y0.clone()
     last_avg_sim = 0
     for i in range(max_iter):
-        M = Y.T@ X
+        M = Y.T @ X
         U, sigma, VT = torch.linalg.svd(M.cpu())
         Q = torch.matmul(U, VT).to(device)
         P = torch.matmul(Y0, Q)
@@ -30,9 +45,6 @@ def train_alignment_Q(X0, Y0, max_iter=5, epsilon=1e-4):
 
     return Q
 
-# ==================================================
-# 训练候选：5000 测试集：1000
-# ==================================================
 
 common_words = set(krenmin) & set(kweibo)
 word_scores = []
@@ -59,12 +71,10 @@ if len(anchor) == 0:
         if len(anchor) == 6000:
             break
 
-# 固定测试集，保证公平
 rng = np.random.default_rng(42)
 indices = rng.permutation(len(anchor))
 test_words = [anchor[i] for i in indices[:1000]]
 
-# 训练集和测试集不重合
 test_set = set(test_words)
 train_pool = [word for word in anchor if word not in test_set]
 
@@ -80,7 +90,7 @@ y0 = torch_normalize(y_t)
 anchor_nums = []
 cos = []
 avg_residuals = []
-for t in range(500,5001,500):
+for t in range(500, 5001, 500):
     lren = [model_renmin.key_to_index[r] for r in train_pool[:t]]
     lwei = [model_weibo.key_to_index[r] for r in train_pool[:t]]
 
@@ -94,7 +104,6 @@ for t in range(500,5001,500):
     Y0 = torch_normalize(Y_t)
 
     Q = train_alignment_Q(X0, Y0)
-    # 在固定测试集上评估
     P = torch.matmul(y0, Q)
 
     current_sims = torch.sum(x0 * P, dim=1)
@@ -110,6 +119,8 @@ for t in range(500,5001,500):
     cos.append(avg_cos)
     avg_residuals.append(avg_residual)
 
+fig_dir = paths.fig_alignment_dir()
+
 plt.figure(figsize=(10, 6))
 plt.plot(anchor_nums, cos, marker="o")
 plt.xlabel("训练锚点数量")
@@ -117,7 +128,8 @@ plt.ylabel("测试集平均余弦相似度")
 plt.title("不同锚点数量下的测试集平均余弦相似度")
 plt.grid(True, alpha=0.4)
 plt.tight_layout()
-plt.savefig(r"D:\高代大作业\anchor_size_test_cos_curve.png", dpi=300)
+p_cos = fig_dir / "anchor_size_test_cos_curve.png"
+plt.savefig(str(p_cos), dpi=300)
 plt.show()
 
 plt.figure(figsize=(10, 6))
@@ -127,17 +139,14 @@ plt.ylabel("测试集平均词级残差")
 plt.title("不同锚点数量下的测试集平均词级残差")
 plt.grid(True, alpha=0.4)
 plt.tight_layout()
-plt.savefig(r"D:\高代大作业\anchor_size_test_residual_curve.png", dpi=300)
+p_res = fig_dir / "anchor_size_test_residual_curve.png"
+plt.savefig(str(p_res), dpi=300)
 plt.show()
 
 Q_np = Q.detach().cpu().numpy()
 QtQ_np = (Q.T @ Q).detach().cpu().numpy()
 
 plt.figure(figsize=(16, 7))
-
-# =========================
-# 左图：Q 矩阵热力图
-# =========================
 plt.subplot(1, 2, 1)
 im1 = plt.imshow(Q_np, cmap="coolwarm", aspect="auto", vmin=-0.2, vmax=0.2)
 plt.colorbar(im1, fraction=0.046, pad=0.04)
@@ -145,9 +154,6 @@ plt.title("对齐矩阵 Q 的热力图")
 plt.xlabel("列索引")
 plt.ylabel("行索引")
 
-# =========================
-# 右图：Q^T Q 热力图
-# =========================
 plt.subplot(1, 2, 2)
 im2 = plt.imshow(QtQ_np, cmap="coolwarm", aspect="auto")
 plt.colorbar(im2, fraction=0.046, pad=0.04)
@@ -156,5 +162,6 @@ plt.xlabel("列索引")
 plt.ylabel("行索引")
 
 plt.tight_layout()
-plt.savefig(r"D:\高代大作业\Q_and_QtQ_heatmap.png", dpi=300)
+p_q = fig_dir / "Q_and_QtQ_heatmap.png"
+plt.savefig(str(p_q), dpi=300)
 plt.show()

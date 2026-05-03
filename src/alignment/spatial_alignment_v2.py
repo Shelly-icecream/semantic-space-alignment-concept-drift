@@ -1,12 +1,25 @@
-from utils import *
+import sys
+from pathlib import Path
+
+_align = Path(__file__).resolve().parent
+_src = _align.parent
+sys.path.insert(0, str(_src))
+sys.path.insert(0, str(_align))
+
+from utils import *  # noqa: E402,F403
+
+import paths  # noqa: E402
+from gensim.models import KeyedVectors  # noqa: E402
+import matplotlib.pyplot as plt  # noqa: E402
+
+plt.rcParams["font.sans-serif"] = ["SimHei"]
+plt.rcParams["axes.unicode_minus"] = False
+
 
 def debug_word(word):
     print(f"'{word}' 在人民日报的邻居: {model_renmin.most_similar(word, topn=5)}")
     print(f"'{word}' 在微博的邻居: {model_weibo.most_similar(word, topn=5)}")
 
-# ==================================================
-# 选取 2500 个公共高频词作为锚点词
-# ==================================================
 
 common_words = set(krenmin) & set(kweibo)
 word_scores = []
@@ -37,7 +50,6 @@ print("锚点数", len(anchor))
 print("特征维度", len(model_renmin[krenmin[0]]))
 print("词数", len(krenmin))
 
-# 锚点词的索引列表
 lren = [model_renmin.key_to_index[r] for r in anchor]
 lwei = [model_weibo.key_to_index[r] for r in anchor]
 
@@ -50,7 +62,6 @@ Y_t = torch.from_numpy(Y).to(device).float()
 X0 = torch_normalize(X_t)
 Y0 = torch_normalize(Y_t)
 
-# --- 初始设置 ---
 max_iter = 5
 epsilon = 1e-4
 last_avg_sim = 0
@@ -59,14 +70,10 @@ X = X0.clone()
 Y = Y0.clone()
 
 for i in range(max_iter):
-
     M = torch.matmul(Y.T, X)
-
-    # 奇异值分解，计算旋转矩阵
     U, sigma, VT = torch.linalg.svd(M.cpu())
     Q = torch.matmul(U, VT).to(device)
 
-    # 剔除万金油词
     P = torch.matmul(Y0, Q)
     current_sims = torch.sum(X0 * P, dim=1)
     r_Y_x = compute_s(X0, P)
@@ -86,14 +93,9 @@ for i in range(max_iter):
         break
 
     last_avg_sim = avg_sim
-
-    # 根据当前 Q 在全部初始锚点中重新筛选可靠锚点，用于下一轮训练
     X = X0[keep_idx]
     Y = Y0[keep_idx]
 
-# ==================================================
-# 导出
-# ==================================================
 final_Q = Q.cpu().numpy()
 
 all_weibo_vectors = model_weibo.vectors
@@ -102,61 +104,65 @@ all_weibo_vectors_norm = all_weibo_vectors / (
 )
 
 aligned_weibo_vectors = all_weibo_vectors_norm @ final_Q
-
 weibo_vocab = model_weibo.index_to_key
 
 aligned_kv = KeyedVectors(vector_size=model_weibo.vector_size)
 aligned_kv.add_vectors(weibo_vocab, aligned_weibo_vectors)
 
-aligned_kv.save(r"D:\高代大作业\weibo_aligned_v2.kv")
+out_kv = paths.alignment_kv(paths.KV_WEIBO_ALIGNED)
+aligned_kv.save(str(out_kv))
+print("对齐后的微博词向量已保存:", out_kv)
 
-print("对齐后的微博词向量已保存。")
-
-
-# ==================================================
-# 误差分析
-# ==================================================
-# 1 平均词级残差
-n=len(anchor)
-residuals = torch.norm(Y0 @ Q - X0, p='fro')
+n = len(anchor)
+residuals = torch.norm(Y0 @ Q - X0, p="fro")
 avg_residual = residuals / np.sqrt(n)
 print("平均词级残差：", avg_residual)
 
-# 2 坏锚点词
 idx = np.argsort(CSLS)[:50]
-for i in idx:
-    print(anchor[i], "分数：", CSLS[i])
+for j in idx:
+    print(anchor[j], "分数：", CSLS[j])
 
-# 3 好锚点词
-idx=np.argsort(-CSLS)[:50]
-for i in idx:
-    debug_word(anchor[i])
+idx = np.argsort(-CSLS)[:50]
+for j in idx:
+    debug_word(anchor[j])
 
-# 4 KMeans
-model_weibo_aligned = KeyedVectors.load(r"D:\高代大作业\weibo_aligned_v2.kv")
+model_weibo_aligned = KeyedVectors.load(str(out_kv), mmap="r")
 print("模型加载完成")
 probe_words = [
-    # 政治/社会稳定词
-    "中国", "政府", "人民", "国家", "社会", "政策",
-
-    # 经济/发展稳定词
-    "经济", "发展", "资本", "市场", "企业", "金融",
-
-    # 教育/科技/文化
-    "科技", "教育", "语文", "艺术", "文化", "创新",
-
-    # 微博/网络文化词
-    "微博", "博主", "转发", "红包", "豆瓣", "奥特曼", "绿茶", "百合"
+    "中国",
+    "政府",
+    "人民",
+    "国家",
+    "社会",
+    "政策",
+    "经济",
+    "发展",
+    "资本",
+    "市场",
+    "企业",
+    "金融",
+    "科技",
+    "教育",
+    "语文",
+    "艺术",
+    "文化",
+    "创新",
+    "微博",
+    "博主",
+    "转发",
+    "红包",
+    "豆瓣",
+    "奥特曼",
+    "绿茶",
+    "百合",
 ]
 all_vectors = []
 all_labels = []
 for word in probe_words:
-    # 人民日报中的词
     if word in model_renmin:
         vec_r = model_renmin[word]
         all_vectors.append(vec_r)
         all_labels.append(f"{word}_人民日报")
-    # 对齐后的微博中的词
     if word in model_weibo_aligned:
         vec_w = model_weibo_aligned[word]
         all_vectors.append(vec_w)
@@ -166,12 +172,8 @@ all_vectors = all_vectors / (np.linalg.norm(all_vectors, axis=1, keepdims=True) 
 print("参与聚类的词数量：", len(all_labels))
 print(all_labels[:10])
 
-n_clusters = 4 # 类别数量
-kmeans = KMeans(
-    n_clusters=n_clusters,
-    random_state=42,
-    n_init=10
-)
+n_clusters = 4
+kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
 clusters = kmeans.fit_predict(all_vectors)
 cluster_result = {}
 for label, cluster_id in zip(all_labels, clusters):
@@ -191,32 +193,22 @@ for i, label in enumerate(all_labels):
     else:
         marker = "^"
         short_label = label.replace("_微博", "_W")
-    plt.scatter(
-        x,
-        y,
-        s=90,
-        marker=marker,
-        label=f"C{cluster_id + 1}" if i == 0 else None
-    )
-    plt.text(
-        x + 0.008,
-        y + 0.008,
-        short_label,
-        fontsize=9
-    )
+    plt.scatter(x, y, s=90, marker=marker, label=f"C{cluster_id + 1}" if i == 0 else None)
+    plt.text(x + 0.008, y + 0.008, short_label, fontsize=9)
+
 print("\n========== 聚类结果 ==========")
 for cluster_id in sorted(cluster_result.keys()):
     print(f"Cluster {cluster_id + 1}:")
     for word in cluster_result[cluster_id]:
         print("   ", word)
     print()
+
 plt.title("人民日报词向量与对齐后微博词向量 KMeans 聚类可视化")
 plt.xlabel("PCA Dimension 1")
 plt.ylabel("PCA Dimension 2")
 plt.grid(True)
 plt.tight_layout()
-plt.savefig(r"D:\高代大作业\cluster_visualization_clear.png", dpi=300)
+fig_path = paths.fig_alignment_dir() / "cluster_visualization_clear.png"
+plt.savefig(str(fig_path), dpi=300)
+print("Saved figure:", fig_path)
 plt.show()
-
-
-
