@@ -1,19 +1,15 @@
 import sys
 from pathlib import Path
+from utils import *  # noqa: E402,F403
+import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
+import torch  # noqa: E402
+import paths  # noqa: E402
 
 _align = Path(__file__).resolve().parent
 _src = _align.parent
 sys.path.insert(0, str(_src))
 sys.path.insert(0, str(_align))
-
-from utils import *  # noqa: E402,F403
-
-import matplotlib.pyplot as plt  # noqa: E402
-import numpy as np  # noqa: E402
-import torch  # noqa: E402
-
-import paths  # noqa: E402
-
 
 def train_alignment_Q(X0, Y0, max_iter=5, epsilon=1e-4):
     X = X0.clone()

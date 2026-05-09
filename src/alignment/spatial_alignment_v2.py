@@ -13,7 +13,6 @@ sys.path.insert(0, str(_align))
 plt.rcParams["font.sans-serif"] = ["SimHei"]
 plt.rcParams["axes.unicode_minus"] = False
 
-
 def debug_word(word):
     print(f"'{word}' Neighbors on People's Daily: {model_renmin.most_similar(word, topn=5)}")
     print(f"'{word}' Neighbors on Weibo: {model_weibo.most_similar(word, topn=5)}")
