@@ -36,6 +36,7 @@
 | `alignment/anchor_size_eval.py` | 锚点规模敏感性曲线及 `Q`、`Q^TQ` 可视化。 |
 | `word/compute_shift.py` | 词级漂移分数及显著性标记；写入 `result/word/`。 |
 | `word/plot_figures.py` | 基于 `result/word/` 中结果生成 `figures/word/` 中图形。 |
+| `word/compute_jaccard.py` | 计算最近邻重排（Jaccard）指标，输出 k=10 和 k=50 下的局部邻域稳定性。 |
 | `word/verify_alignment.py` | 锚点集上的对齐性质检验；可选依赖 `result/alignment/renmin_anchor_sorted.kv`。 |
 | `joint_pca/semantic_space_pca.py` | 两域 L2 行归一化后联合 PCA（50 维）；输出 `result/joint_pca/semantic_space_pca.npz`。 |
 | `cluster/semantic_embedding_cluster.py` | 全量 KMeans；输出 `result/cluster/semantic_embedding_cluster.npz`。 |
@@ -70,14 +71,15 @@ python -m compileall -q src
 以下命令均在仓库根目录执行。前提为 `result/alignment/` 中已具备 `renmin_fast.kv`、`weibo_fast.kv`，并完成对齐得到 `weibo_aligned_v2.kv`（若已满足可省略步骤 1）。
 
 1. `python src/alignment/spatial_alignment_v2.py`  
-2. `python src/word/compute_shift.py`；`python src/word/plot_figures.py`  
-3. `python src/joint_pca/semantic_space_pca.py`  
-4. `python src/cluster/semantic_embedding_cluster.py`  
-5. `python src/cluster/cluster_centroid_drift.py`  
-6. `python src/cluster/cluster_intra_compactness.py`  
-7. `python src/cluster/cluster_separability_metrics.py`  
-8. `python src/cluster/cluster_drift_visualization.py`  
-9. 按需：`python src/geometric/geometric_space_density_metrics.py`、`python src/geometric/geometric_space_covariance_metrics.py`、`python src/geometric/geometric_space_procrustes_metrics.py`  
-10. `python src/geometric/geometric_space_visualization.py`  
+2. `python src/word/compute_shift.py`；`python src/word/plot_figures.py`
+3. `python src/word/compute_jaccard.py`
+4. `python src/joint_pca/semantic_space_pca.py`  
+5. `python src/cluster/semantic_embedding_cluster.py`  
+6. `python src/cluster/cluster_centroid_drift.py`  
+7. `python src/cluster/cluster_intra_compactness.py`  
+8. `python src/cluster/cluster_separability_metrics.py`  
+9. `python src/cluster/cluster_drift_visualization.py`  
+10. 按需：`python src/geometric/geometric_space_density_metrics.py`、`python src/geometric/geometric_space_covariance_metrics.py`、`python src/geometric/geometric_space_procrustes_metrics.py`  
+11. `python src/geometric/geometric_space_visualization.py`  
 
 ---
