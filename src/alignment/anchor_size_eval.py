@@ -1,19 +1,15 @@
 import sys
 from pathlib import Path
+from utils import *  # noqa: E402,F403
+import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
+import torch  # noqa: E402
+import paths  # noqa: E402
 
 _align = Path(__file__).resolve().parent
 _src = _align.parent
 sys.path.insert(0, str(_src))
 sys.path.insert(0, str(_align))
-
-from utils import *  # noqa: E402,F403
-
-import matplotlib.pyplot as plt  # noqa: E402
-import numpy as np  # noqa: E402
-import torch  # noqa: E402
-
-import paths  # noqa: E402
-
 
 def train_alignment_Q(X0, Y0, max_iter=5, epsilon=1e-4):
     X = X0.clone()
@@ -33,10 +29,10 @@ def train_alignment_Q(X0, Y0, max_iter=5, epsilon=1e-4):
         keep_idx = np.where(CSLS > threshold)[0]
 
         avg_sim = np.mean(CSLS[keep_idx])
-        print(f"第 {i + 1} 次迭代, 保留词平均相似度: {avg_sim:.4f}")
+        print(f"Iteration {i + 1}, Average Similarity of Retained Words: {avg_sim:.4f}")
 
         if abs(avg_sim - last_avg_sim) < epsilon:
-            print("算法已收敛。")
+            print("The algorithm has converged.")
             break
 
         last_avg_sim = avg_sim
@@ -63,7 +59,8 @@ word_scores.sort(key=lambda x: x[1], reverse=True)
 anchor = [word for word, score in word_scores[:6000]]
 
 if len(anchor) == 0:
-    print("警告：模型中没有 count 属性，改用人民日报词表顺序选取公共词。")
+    print("Warning: The model does not have the count attribute; common words are selected in the "
+          "order of the People's Daily vocabulary list instead.")
     anchor = []
     for word in common_words:
         if is_good_anchor(word):
@@ -112,8 +109,8 @@ for t in range(500, 5001, 500):
     residual = torch.norm(P - x0, p="fro")
     avg_residual = (residual / np.sqrt(len(test_words))).item()
 
-    print("测试集平均余弦：", avg_cos)
-    print("测试集平均词级残差：", avg_residual)
+    print("Average Cosine of Test Set:", avg_cos)
+    print("Average word-level residual of the test set:", avg_residual)
 
     anchor_nums.append(t)
     cos.append(avg_cos)
@@ -123,9 +120,9 @@ fig_dir = paths.fig_alignment_dir()
 
 plt.figure(figsize=(10, 6))
 plt.plot(anchor_nums, cos, marker="o")
-plt.xlabel("训练锚点数量")
-plt.ylabel("测试集平均余弦相似度")
-plt.title("不同锚点数量下的测试集平均余弦相似度")
+plt.xlabel("Number of training anchors")
+plt.ylabel("Average Cosine Similarity of the Test Set")
+plt.title("Average cosine similarity of the test set under different numbers of anchors")
 plt.grid(True, alpha=0.4)
 plt.tight_layout()
 p_cos = fig_dir / "anchor_size_test_cos_curve.png"
@@ -134,9 +131,9 @@ plt.show()
 
 plt.figure(figsize=(10, 6))
 plt.plot(anchor_nums, avg_residuals, marker="o")
-plt.xlabel("训练锚点数量")
-plt.ylabel("测试集平均词级残差")
-plt.title("不同锚点数量下的测试集平均词级残差")
+plt.xlabel("Number of training anchors")
+plt.ylabel("Average word-level residual of the test set")
+plt.title("Average word-level residual of the test set under different numbers of anchor points")
 plt.grid(True, alpha=0.4)
 plt.tight_layout()
 p_res = fig_dir / "anchor_size_test_residual_curve.png"
@@ -150,16 +147,16 @@ plt.figure(figsize=(16, 7))
 plt.subplot(1, 2, 1)
 im1 = plt.imshow(Q_np, cmap="coolwarm", aspect="auto", vmin=-0.2, vmax=0.2)
 plt.colorbar(im1, fraction=0.046, pad=0.04)
-plt.title("对齐矩阵 Q 的热力图")
-plt.xlabel("列索引")
-plt.ylabel("行索引")
+plt.title("Heatmap of alignment matrix Q")
+plt.xlabel("Column Index")
+plt.ylabel("Row Index")
 
 plt.subplot(1, 2, 2)
 im2 = plt.imshow(QtQ_np, cmap="coolwarm", aspect="auto")
 plt.colorbar(im2, fraction=0.046, pad=0.04)
-plt.title("Q^TQ 的热力图")
-plt.xlabel("列索引")
-plt.ylabel("行索引")
+plt.title("Heat map of Q^TQ")
+plt.xlabel("Column Index")
+plt.ylabel("Row Index")
 
 plt.tight_layout()
 p_q = fig_dir / "Q_and_QtQ_heatmap.png"

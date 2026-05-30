@@ -16,7 +16,7 @@ from sklearn.decomposition import PCA  # noqa: F401
 import paths
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"使用设备: {device}")
+print(f"device: {device}")
 
 
 def is_good_anchor(word):

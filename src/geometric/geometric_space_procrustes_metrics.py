@@ -22,7 +22,7 @@ OUT_NPZ = paths.geometric_npz("geometric_space_procrustes_residual_heatmap.npz")
 
 RANDOM_STATE = 42
 MAX_WORDS = 12_000
-HEATMAP_ROWS = 400
+HEATMAP_ROWS = 250
 
 
 def l2_normalize_rows(matrix: np.ndarray, eps: float = 1e-10) -> np.ndarray:
