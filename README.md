@@ -34,9 +34,9 @@
 | `alignment/utils.py` | 对齐实验共用例程与设备配置；自 `result/alignment/` 加载基向量。 |
 | `alignment/spatial_alignment_v2.py` | 正交 Procrustes 与 CSLS 迭代；输出对齐后微博向量及 `figures/alignment/` 中诊断图。 |
 | `alignment/anchor_size_eval.py` | 锚点规模敏感性曲线及 `Q`、`Q^TQ` 可视化。 |
-| `word/compute_shift.py` | 词级漂移分数及显著性标记；写入 `result/word/`。 |
-| `word/plot_figures.py` | 基于 `result/word/` 中结果生成 `figures/word/` 中图形。 |
-| `word/compute_jaccard.py` | 计算最近邻重排（Jaccard）指标，输出 k=10 和 k=50 下的局部邻域稳定性。 |
+| `word/compute_shift.py` | 排除 $|\mathcal{A}|=2500$ 锚点后，在形态过滤交集词上按 `min(count_rm,count_wb)` 降序取 Top-5000，计算 $\mathrm{Shift}(w)$ 及分布描述统计；写入 `result/word/`。 |
+| `word/plot_figures.py` | 基于 `result/word/` 生成 `figures/word/`：Shift 分布直方图与自动 Top-20 柱状图（英文轴标签，无阈值参考线）。 |
+| `word/compute_jaccard.py` | 在与 Shift 相同词频排序规则下的 Top 词子集上计算 Jaccard（$k{=}10,50$）。 |
 | `word/verify_alignment.py` | 锚点集上的对齐性质检验；可选依赖 `result/alignment/renmin_anchor_sorted.kv`。 |
 | `joint_pca/semantic_space_pca.py` | 两域 L2 行归一化后联合 PCA（50 维）；输出 `result/joint_pca/semantic_space_pca.npz`。 |
 | `cluster/semantic_embedding_cluster.py` | 全量 KMeans；输出 `result/cluster/semantic_embedding_cluster.npz`。 |
