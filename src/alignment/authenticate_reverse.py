@@ -1,18 +1,25 @@
+import sys
+from pathlib import Path
+
+_align = Path(__file__).resolve().parent
+_src = _align.parent
+sys.path.insert(0, str(_src))
+sys.path.insert(0, str(_align))
+
+from utils import *  # noqa: E402,F403
+import paths  # noqa: E402
+
 import random
-from utils import *
+import numpy as np
 import pandas as pd
-from gensim.models import KeyedVectors
+import torch
+from gensim.models import KeyedVectors  # noqa: E402
 
-KV_DIR = Path(r"D:\高代大作业\result\alignment")
+RENMIN_KV = paths.alignment_kv(paths.KV_RENMIN)
+WEIBO_KV = paths.alignment_kv(paths.KV_WEIBO_RAW)
+WEIBO_ALIGNED_KV = paths.alignment_kv(paths.KV_WEIBO_ALIGNED)
 
-RENMIN_KV = KV_DIR / "renmin_fast.kv"
-WEIBO_KV = KV_DIR / "weibo_fast.kv"
-WEIBO_ALIGNED_KV = KV_DIR / "weibo_aligned_v2.kv"
-
-OUT_DIR = KV_DIR
-OUT_DIR.mkdir(parents=True, exist_ok=True)
-
-OUT_CSV = OUT_DIR / "reverse_alignment_check_from_saved_vectors.csv"
+OUT_CSV = paths.alignment_dir() / "reverse_alignment_check_from_saved_vectors.csv"
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using device:", device)
